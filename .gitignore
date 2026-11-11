@@ -1,0 +1,22 @@
+# Ignore internal PRD & Prompt files
+Prompt.md
+PRD.md
+
+# Ignore SQLite database & WAL runtime files
+storage/*.sqlite
+storage/*.sqlite-wal
+storage/*.sqlite-shm
+
+# Keep storage directory tracked
+!storage/.gitkeep
+!storage/.htaccess
+
+# Ignore local IDE, OS, and archive files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.zip
+
+
+

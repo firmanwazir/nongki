@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="id" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#F8FAFC">
+    <title>Nongki — Live Video Chat</title>
+
+    <!-- App Favicon & Touch Icon -->
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+    <link rel="shortcut icon" href="assets/img/favicon.svg">
+    <link rel="apple-touch-icon" href="assets/img/favicon.svg">
+
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3 & Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" crossorigin="anonymous">
+
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="assets/css/main.css">
+
+    <!-- PeerJS WebRTC Library -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous" defer></script>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Top Header Navigation -->
+        <header class="app-header">
+            <div class="header-brand">
+                <div class="brand-logo">
+                    <i class="bi bi-camera-video-fill"></i>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-title">Nongki</span>
+                    <span class="brand-badge">Live Video</span>
+                </div>
+            </div>
+
+            <div class="header-status">
+                <div id="statusBadge" class="status-indicator status-idle">
+                    <span class="status-dot"></span>
+                    <span id="statusText" class="status-label">Siap Nongki</span>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button type="button" class="btn-icon" id="btnToggleChatMobile" title="Buka/Tutup Chat" aria-label="Toggle Chat">
+                    <i class="bi bi-chat-dots-fill"></i>
+                    <span id="chatUnreadDot" class="unread-dot d-none"></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content: Split-Stage Layout -->
+        <main class="app-main">
+            <!-- Stage 1: Video Stage (70% Desktop / Full Mobile) -->
+            <section class="video-stage">
+                <!-- Remote Video Container -->
+                <div class="remote-viewport" id="remoteViewport">
+                    <video id="remoteVideo" autoplay playsinline></video>
+                    
+                    <!-- Overlay State Placeholder (Idle / Searching) -->
+                    <div class="stage-placeholder" id="stagePlaceholder">
+                        <div class="placeholder-pulse" id="placeholderPulse">
+                            <i class="bi bi-broadcast" id="placeholderIcon"></i>
+                        </div>
+                        <h2 class="placeholder-title" id="placeholderTitle">Temukan Teman Nongki</h2>
+                        <p class="placeholder-desc" id="placeholderDesc">
+                            Ketuk tombol <strong>Mulai Nongki</strong> di bawah<span class="d-none d-md-inline"> atau tekan tombol <code>ESC</code></span> untuk mulai mencari teman mengobrol acak.
+                        </p>
+                    </div>
+
+                    <!-- Remote User Label & Live Counter -->
+                    <div class="remote-info-bar" id="remoteInfoBar">
+                        <div class="info-tag" id="remoteTag">
+                            <i class="bi bi-person-fill"></i>
+                            <span id="remoteName">Teman Nongki</span>
+                        </div>
+                    </div>
+
+                    <!-- Picture-in-Picture Local Video -->
+                    <div class="local-viewport" id="localViewport" title="Video Kamera Anda">
+                        <video id="localVideo" autoplay playsinline muted></video>
+                        <div class="local-overlay" id="localVideoOffOverlay">
+                            <i class="bi bi-camera-video-off-fill"></i>
+                        </div>
+                        <div class="local-badge">
+                            <span>Anda</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Floating Controls Toolbar -->
+                <nav class="controls-toolbar" aria-label="Kontrol Panggilan">
+                    <!-- Navigasi Matchmaking Utama -->
+                    <div class="control-group action-group">
+                        <button type="button" class="btn-action btn-start-next" id="btnStartNext" title="Mulai / Ganti Pasangan (ESC)">
+                            <i class="bi bi-play-fill" id="iconStartNext"></i>
+                            <span id="labelStartNext">Mulai Nongki</span>
+                            <kbd class="shortcut-badge d-none d-md-inline">ESC</kbd>
+                        </button>
+                        <button type="button" class="btn-action btn-stop" id="btnStop" title="Berhenti Nongki" disabled>
+                            <i class="bi bi-stop-fill"></i>
+                            <span>Stop</span>
+                        </button>
+                    </div>
+
+                    <!-- Pemisah Vertikal -->
+                    <div class="toolbar-divider"></div>
+
+                    <!-- Kontrol Perangkat Media -->
+                    <div class="control-group media-group">
+                        <button type="button" class="btn-control" id="btnToggleMic" title="Mute/Unmute Mic" aria-label="Toggle Mikrofon">
+                            <i class="bi bi-mic-fill" id="iconMic"></i>
+                        </button>
+                        <button type="button" class="btn-control" id="btnToggleCam" title="On/Off Kamera" aria-label="Toggle Kamera">
+                            <i class="bi bi-camera-video-fill" id="iconCam"></i>
+                        </button>
+                        <button type="button" class="btn-control d-none" id="btnFlipCam" title="Ganti Kamera Depan/Belakang" aria-label="Ganti Kamera">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </button>
+                        <button type="button" class="btn-control d-none d-sm-inline-flex" id="btnShareScreen" title="Bagikan Layar" aria-label="Share Screen">
+                            <i class="bi bi-display" id="iconScreen"></i>
+                        </button>
+                    </div>
+                </nav>
+            </section>
+
+            <!-- Stage 2: Live Chat Panel (30% Desktop / Slide Drawer Mobile) -->
+            <aside class="chat-panel" id="chatPanel">
+                <div class="chat-header">
+                    <div class="chat-title">
+                        <i class="bi bi-chat-text-fill text-emerald"></i>
+                        <span>Live Chat</span>
+                    </div>
+                    <div class="chat-header-actions">
+                        <button type="button" class="btn-icon-subtle" id="btnClearChat" title="Bersihkan Chat">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                        <button type="button" class="btn-icon-subtle d-lg-none" id="btnCloseChatMobile" title="Tutup Panel Chat">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat Message Stream -->
+                <div class="chat-messages" id="chatMessages" role="log" aria-live="polite">
+                    <div class="chat-system-message">
+                        <i class="bi bi-shield-check"></i>
+                        <span>Percakapan bersifat langsung dan terenkripsi. Riwayat pesan tidak disimpan di server.</span>
+                    </div>
+                </div>
+
+                <!-- Chat Input Form -->
+                <form class="chat-input-form" id="chatForm" autocomplete="off">
+                    <div class="input-wrapper">
+                        <input type="text" id="chatInput" class="chat-input" placeholder="Ketik pesan..." maxlength="500" disabled>
+                        <button type="submit" id="btnSendChat" class="btn-send" title="Kirim Pesan" disabled aria-label="Kirim">
+                            <i class="bi bi-send-fill"></i>
+                        </button>
+                    </div>
+                </form>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <!-- Main ES6 Application Orchestrator -->
+    <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>
+

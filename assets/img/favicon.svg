@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+    <defs>
+        <linearGradient id="nongkiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#10B981" />
+            <stop offset="100%" stop-color="#059669" />
+        </linearGradient>
+    </defs>
+    <!-- Rounded App Icon Base -->
+    <rect width="64" height="64" rx="16" fill="url(#nongkiGrad)" />
+    <!-- Video Camera Body -->
+    <rect x="12" y="20" width="28" height="24" rx="6" fill="#FFFFFF" />
+    <!-- Video Camera Lens / Polygon -->
+    <path d="M42 26.5L51.2 21.2C52.5 20.4 54 21.4 54 22.9V41.1C54 42.6 52.5 43.6 51.2 42.8L42 37.5V26.5Z" fill="#FFFFFF" />
+    <!-- Live Green Accent Dot Inside Camera -->
+    <circle cx="21" cy="28" r="3" fill="#059669" />
+</svg>
+
