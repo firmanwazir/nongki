@@ -21,16 +21,26 @@ export const CONFIG = {
         config: {
             // Utamakan koneksi langsung via STUN, fallback ke TURN jika gagal/terblokir firewall
             iceTransportPolicy: 'all',
-            iceCandidatePoolSize: 10,
+            iceCandidatePoolSize: 4,
             bundlePolicy: 'max-bundle',
             rtcpMuxPolicy: 'require',
             iceServers: [
-                // 1. Google Public STUN Servers (Gratis & Kecepatan Tinggi)
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:stun2.l.google.com:19302' },
-                { urls: 'stun:stun3.l.google.com:19302' },
-                { urls: 'stun:stun4.l.google.com:19302' },
+                // 1. Cloudflare Anycast STUN (Ultra-Low Latency di jaringan ISP Indonesia, Port 3478 & 53)
+                {
+                    urls: [
+                        'stun:stun.cloudflare.com:3478',
+                        'stun:stun.cloudflare.com:53'
+                    ]
+                },
+
+                // 2. Google Public STUN Servers (High-Availability Multi-Port 19302 & 5349)
+                {
+                    urls: [
+                        'stun:stun.l.google.com:19302',
+                        'stun:stun.l.google.com:5349',
+                        'stun:stun1.l.google.com:19302'
+                    ]
+                },
 
                 // 2. Placeholder TURN Servers (UDP, TCP Port 80, TURNS Port 443)
                 // Isi jika ingin traversal menembus Symmetric NAT / Jaringan Seluler Ketat
